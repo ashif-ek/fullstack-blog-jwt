@@ -22,7 +22,7 @@ function PostDetail() {
         }
     };
 
-    if (!post) return <Layout><div className="text-center mt-10">Loading...</div></Layout>;
+    if (!post) return <Layout><div className="text-center mt-20 text-slate-500 font-serif animate-pulse">Loading Analysis...</div></Layout>;
 
     const formattedDate = new Date(post.created_at).toLocaleDateString("en-US", {
         year: 'numeric',
@@ -32,19 +32,32 @@ function PostDetail() {
 
     return (
         <Layout>
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                <div className="p-8">
-                    <div className="uppercase tracking-wide text-sm text-blue-500 font-semibold">Blog Post</div>
-                    <h1 className="block mt-1 text-3xl leading-tight font-bold text-black">{post.title}</h1>
-                    <p className="text-gray-500 text-sm mt-2">By {post.author} on {formattedDate}</p>
+            <div className="bg-white border border-gray-200 shadow-sm overflow-hidden mb-10">
+                {post.image && (
+                    <div className="w-full h-96 relative border-b border-gray-200">
+                        <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
+                    </div>
+                )}
+
+                <div className="p-12 md:p-16">
+                    <div className="uppercase tracking-widest text-xs font-bold text-blue-900 mb-4 font-sans border-b-2 border-slate-900 inline-block pb-1">Research Publication</div>
+                    <h1 className="text-4xl md:text-5xl font-bold font-serif text-slate-900 leading-tight mb-6">{post.title}</h1>
                     
-                    <div className="mt-8 text-gray-700 leading-relaxed whitespace-pre-line text-lg">
-                        {post.content}
+                    <div className="flex items-center text-slate-500 text-sm font-sans mb-12 border-b border-gray-200 pb-8">
+                        <span className="font-bold text-slate-900 mr-2">{post.author}</span> 
+                        <span className="mx-2 text-slate-400">•</span>
+                        <span>{formattedDate}</span>
+                    </div>
+                    
+                    <div className="prose prose-lg max-w-none text-slate-800 font-serif leading-loose">
+                        {post.content.split('\n').map((paragraph, idx) => (
+                             <p key={idx} className="mb-6">{paragraph}</p>
+                        ))}
                     </div>
 
-                    <div className="mt-8 pt-6 border-t border-gray-200">
-                        <Link to="/" className="text-blue-500 hover:text-blue-800 font-semibold">
-                            ← Back to Home
+                    <div className="mt-16 pt-8 border-t border-gray-200 flex justify-between items-center">
+                        <Link to="/" className="text-slate-500 hover:text-blue-900 font-bold text-xs uppercase tracking-widest transition duration-300 flex items-center gap-2">
+                             <span className="transform -translate-x-1 group-hover:-translate-x-2 transition-transform">←</span> Return to Feed
                         </Link>
                     </div>
                 </div>

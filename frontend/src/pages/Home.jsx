@@ -7,7 +7,9 @@ function Home() {
     const [posts, setPosts] = useState([]);
     const [content, setContent] = useState("");
     const [title, setTitle] = useState("");
+    const [image, setImage] = useState(null);
     const [isCreating, setIsCreating] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         getPosts();
@@ -19,15 +21,14 @@ function Home() {
             .then((data) => {
                 setPosts(data);
             })
-            .catch((err) => alert(err));
+            .catch((err) => alert("Error fetching posts"));
     };
 
     const deletePost = (id) => {
-        if (window.confirm("Are you sure you want to delete this post?")) {
+        if (window.confirm("Are you sure you want to delete this citation?")) {
             api.delete(`/api/blog/posts/${id}/`)
                 .then((res) => {
                     if (res.status === 204) {
-                        // Optimistic update
                         setPosts(posts.filter(post => post.id !== id));
                     }
                     else alert("Failed to delete post.");
@@ -38,66 +39,97 @@ function Home() {
 
     const createPost = (e) => {
         e.preventDefault();
-        api.post("/api/blog/posts/", { content, title })
+        setLoading(true);
+        
+        const formData = new FormData();
+        formData.append("title", title);
+        formData.append("content", content);
+        if (image) {
+            formData.append("image", image);
+        }
+
+        api.post("/api/blog/posts/", formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        })
             .then((res) => {
                 if (res.status === 201) {
-                    alert("Post created!");
+                    alert("Research Published Successfully!");
                     setTitle("");
                     setContent("");
+                    setImage(null);
                     setIsCreating(false);
                     getPosts();
                 } else alert("Failed to make post.");
             })
-            .catch((err) => alert(err));
+            .catch((err) => alert(err))
+            .finally(() => setLoading(false));
     };
 
     return (
         <Layout>
             {/* Header Section */}
-            <div className="flex justify-between items-center mb-8">
-                <h1 className="text-3xl font-bold text-gray-800">Latest Posts</h1>
+            <div className="flex justify-between items-center mb-12 border-b-2 border-slate-900 pb-6">
+                <div>
+                    <h1 className="text-4xl font-serif font-bold text-slate-900 tracking-tight">Research Feed</h1>
+                    <p className="text-slate-500 mt-2 font-sans text-sm uppercase tracking-wide">Recent Publications & Findings</p>
+                </div>
                 <button 
                     onClick={() => setIsCreating(!isCreating)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300 shadow-md"
+                    className="bg-slate-900 hover:bg-slate-700 text-white font-bold py-3 px-8 rounded-none shadow-sm transition duration-300 font-sans uppercase tracking-widest text-xs"
                 >
-                    {isCreating ? "Cancel" : "Create New Post"}
+                    {isCreating ? "Discard Draft" : "Submit Paper"}
                 </button>
             </div>
 
-            {/* Create Post Form (Collapsible) */}
+            {/* Create Post Form */}
             {isCreating && (
-                <div className="bg-white p-6 rounded-lg shadow-md mb-8 animate-fade-in-down">
-                    <h2 className="text-xl font-bold mb-4 text-gray-700">Write a New Story</h2>
+                <div className="bg-white border border-gray-200 p-10 shadow-sm mb-16 animate-fade-in-down">
+                    <h2 className="text-2xl font-serif font-bold mb-8 text-slate-900 flex items-center gap-3">
+                         Submit New Finding
+                    </h2>
                     <form onSubmit={createPost}>
-                        <div className="mb-4">
-                            <label htmlFor="title" className="block text-gray-700 text-sm font-bold mb-2">Title</label>
+                        <div className="mb-6">
+                            <label htmlFor="title" className="block text-slate-700 text-xs font-bold mb-2 font-sans uppercase tracking-widest">Title</label>
                             <input
                                 type="text"
                                 id="title"
                                 required
                                 onChange={(e) => setTitle(e.target.value)}
                                 value={title}
-                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Enter an engaging title"
+                                className="bg-white border border-gray-300 w-full py-4 px-5 text-slate-900 leading-tight focus:outline-none focus:border-slate-900 focus:ring-0 transition font-serif text-xl placeholder-gray-400 rounded-none"
+                                placeholder="Enter paper title..."
                             />
                         </div>
-                        <div className="mb-6">
-                            <label htmlFor="content" className="block text-gray-700 text-sm font-bold mb-2">Content</label>
+                         <div className="mb-6">
+                            <label htmlFor="image" className="block text-slate-700 text-xs font-bold mb-2 font-sans uppercase tracking-widest">Figure / Illustration (Optional)</label>
+                            <input
+                                type="file"
+                                id="image"
+                                accept="image/*"
+                                onChange={(e) => setImage(e.target.files[0])}
+                                className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 transition"
+                            />
+                        </div>
+                        <div className="mb-8">
+                            <label htmlFor="content" className="block text-slate-700 text-xs font-bold mb-2 font-sans uppercase tracking-widest">Abstract / Content</label>
                             <textarea
                                 id="content"
                                 required
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
-                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 h-32"
-                                placeholder="What's on your mind?"
+                                className="bg-white border border-gray-300 w-full py-4 px-5 text-slate-900 leading-relaxed focus:outline-none focus:border-slate-900 focus:ring-0 h-56 transition font-serif text-lg placeholder-gray-400 resize-none rounded-none"
+                                placeholder="Summarize your findings..."
                             ></textarea>
                         </div>
                         <div className="flex justify-end">
                             <button 
                                 type="submit" 
-                                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded transition duration-300"
+                                disabled={loading}
+                                className="bg-blue-900 hover:bg-blue-800 text-white font-bold py-3 px-10 transition duration-300 font-sans uppercase tracking-widest text-xs rounded-none"
                             >
-                                Publish
+                                {loading ? "Publishing..." : "Publish Findings"}
                             </button>
                         </div>
                     </form>
@@ -105,13 +137,15 @@ function Home() {
             )}
 
             {/* Posts Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 {posts.length > 0 ? (
                     posts.map((post) => (
                         <PostCard key={post.id} post={post} onDelete={deletePost} />
                     ))
                 ) : (
-                    <p className="text-gray-500 text-center col-span-2 py-10">No posts yet. Be the first to write one!</p>
+                    <p className="text-slate-500 text-center col-span-2 py-20 font-serif italic text-lg border border-dashed border-gray-300">
+                        No research papers available.
+                    </p>
                 )}
             </div>
         </Layout>

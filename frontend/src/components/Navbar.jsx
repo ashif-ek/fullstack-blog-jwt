@@ -1,40 +1,50 @@
-import { Link, useNavigate } from "react-router-dom";
-import { ACCESS_TOKEN } from "../constants";
+import { Link, useNavigate } from "react-router-dom"
+import { ACCESS_TOKEN } from "../constants"
+import { useState, useEffect } from "react"
+import api from "../api"
 
 function Navbar() {
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const navigate = useNavigate();
-    const isLoggedIn = localStorage.getItem(ACCESS_TOKEN);
+
+    useEffect(() => {
+        const token = localStorage.getItem(ACCESS_TOKEN);
+        if (token) {
+            setIsLoggedIn(true);
+        } else {
+            setIsLoggedIn(false);
+        }
+    }, [localStorage.getItem(ACCESS_TOKEN)]); // React dependency to simple check
 
     const handleLogout = () => {
-        navigate("/logout");
+        localStorage.clear();
+        setIsLoggedIn(false);
+        navigate("/login");
     };
 
     return (
-        <nav className="bg-white shadow-lg">
+        <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
             <div className="max-w-6xl mx-auto px-4">
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                     {/* Logo / Brand */}
-                    <div className="flex space-x-7">
-                        <div>
-                            <Link to="/" className="flex items-center py-4 px-2">
-                                <span className="font-semibold text-gray-500 text-lg hover:text-blue-500 transition duration-300">
-                                    MyBlog
-                                </span>
-                            </Link>
-                        </div>
-                    </div>
+                    <Link to="/" className="flex items-center py-4 px-2 group">
+                        <span className="font-serif font-bold text-slate-900 text-xl tracking-tight group-hover:text-blue-900 transition duration-300">
+                            Academic<span className="text-blue-700">Blog</span>
+                        </span>
+                    </Link>
 
                     {/* Primary Navbar items */}
-                    <div className="hidden md:flex items-center space-x-3">
+                    <div className="hidden md:flex items-center space-x-6">
                         {isLoggedIn ? (
                             <>
-                                <Link to="/" className="py-2 px-2 font-medium text-gray-500 rounded hover:bg-blue-500 hover:text-white transition duration-300">Home</Link>
-                                <button onClick={handleLogout} className="py-2 px-2 font-medium text-white bg-red-500 rounded hover:bg-red-400 transition duration-300">Log Out</button>
+                                <Link to="/" className="text-slate-600 hover:text-blue-900 font-sans uppercase tracking-widest text-xs font-bold transition">Research Feed</Link>
+                                <Link to="/profile" className="text-slate-600 hover:text-blue-900 font-sans uppercase tracking-widest text-xs font-bold transition">Profile</Link>
+                                <button onClick={handleLogout} className="text-slate-400 hover:text-red-700 font-sans uppercase tracking-widest text-xs font-bold transition">Log Out</button>
                             </>
                         ) : (
                             <>
-                                <Link to="/login" className="py-2 px-2 font-medium text-gray-500 rounded hover:bg-green-500 hover:text-white transition duration-300">Log In</Link>
-                                <Link to="/register" className="py-2 px-2 font-medium text-white bg-blue-500 rounded hover:bg-blue-400 transition duration-300">Sign Up</Link>
+                                <Link to="/login" className="text-slate-600 hover:text-blue-900 font-sans uppercase tracking-widest text-xs font-bold transition">Log In</Link>
+                                <Link to="/register" className="px-5 py-2 text-white bg-slate-900 hover:bg-slate-700 rounded-none font-sans uppercase tracking-widest text-xs font-bold transition shadow-sm">Sign Up</Link>
                             </>
                         )}
                     </div>

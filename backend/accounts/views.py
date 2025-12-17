@@ -2,11 +2,11 @@ from django.shortcuts import render, redirect
 from .forms import RegisterForm, LoginForm
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.hashers import check_password
-from .models import User
+from .models import User, Profile
 
-from rest_framework import generics
-from rest_framework.permissions import AllowAny
-from .serializers import RegisterSerializer
+from rest_framework import generics, permissions
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from .serializers import RegisterSerializer, ProfileSerializer
 
 def register_view(request):
     """
@@ -70,4 +70,14 @@ class RegisterAPIView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
+
+
+class ProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = ProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        # Create profile if it doesn't exist (signal alternative for simplicity)
+        profile, created = Profile.objects.get_or_create(user=self.request.user)
+        return profile
 
