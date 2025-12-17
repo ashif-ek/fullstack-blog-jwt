@@ -2,6 +2,7 @@ import ProtectedRoute from "./components/ProtectedRoute"
 import React, { Suspense, lazy } from 'react';
 import LoadingFallback from "./components/LoadingFallback";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";  
 
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
@@ -20,43 +21,53 @@ function RegisterAndLogout() {
     return <Register />
 }
 
+const PageWrapper = ({ children }) => (
+  <ErrorBoundary>
+    <Suspense fallback={<LoadingFallback />}>
+      {children}
+    </Suspense>
+  </ErrorBoundary>
+);
+
 function App() {
   return (
     <BrowserRouter>
-      <ErrorBoundary>
-        <Suspense fallback={<LoadingFallback />}>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Home />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/post/:id"
-              element={
-                <ProtectedRoute>
-                  <PostDetail />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/login" element={<Login />} />
-            <Route path="/logout" element={<Logout />} />
-            <Route path="/register" element={<RegisterAndLogout />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-      </ErrorBoundary>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <PageWrapper>
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/post/:id"
+          element={
+            <PageWrapper>
+              <ProtectedRoute>
+                <PostDetail />
+              </ProtectedRoute>
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <PageWrapper>
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            </PageWrapper>
+          }
+        />
+        <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
+        <Route path="/logout" element={<PageWrapper><Logout /></PageWrapper>} />
+        <Route path="/register" element={<PageWrapper><RegisterAndLogout /></PageWrapper>} />
+        <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
+      </Routes>
     </BrowserRouter>
   )
 }

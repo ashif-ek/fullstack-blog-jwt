@@ -5,6 +5,8 @@ import Layout from "../components/Layout";
 function Profile() {
     const [profile, setProfile] = useState({ full_name: "", bio: "", institution: "" });
     const [email, setEmail] = useState("");
+    const [image, setImage] = useState(null); // For new upload
+    const [preview, setPreview] = useState(null); // For previewing upload
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
@@ -24,13 +26,37 @@ function Profile() {
         }
     };
 
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setImage(file);
+            setPreview(URL.createObjectURL(file));
+        }
+    };
+
     const handleUpdate = async (e) => {
         e.preventDefault();
         setSaving(true);
+        
+        const formData = new FormData();
+        formData.append("full_name", profile.full_name);
+        formData.append("institution", profile.institution);
+        formData.append("bio", profile.bio);
+        if (image) {
+            formData.append("image", image);
+        }
+
         try {
-            await api.patch("/api/profile/", profile);
-            alert("Profile updated successfully.");
+            // Using PATCH for partial update
+            const res = await api.patch("/api/profile/", formData, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
+            setProfile(res.data); // Update state with response (which includes new image URL)
+            setPreview(null);
+            setImage(null);
+            alert("Profile updated successfully!");
         } catch (err) {
+            console.error(err);
             alert("Failed to update profile.");
         } finally {
             setSaving(false);
@@ -42,11 +68,30 @@ function Profile() {
     return (
         <Layout>
             <div className="bg-white border border-gray-200 p-10 shadow-sm max-w-3xl mx-auto">
-                <div className="flex items-center gap-6 mb-2 border-b-2 border-slate-900 pb-6">
-                    <div className="w-20 h-20 bg-slate-900 rounded-none flex items-center justify-center text-3xl font-bold text-white font-serif">
-                        {profile.full_name ? profile.full_name.charAt(0) : "U"}
+                <div className="flex flex-col md:flex-row items-center gap-8 mb-4 border-b-2 border-slate-900 pb-8">
+                     {/* Photo Section */}
+                    <div className="relative group">
+                        <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-100 flex items-center justify-center">
+                             {preview ? (
+                                <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                             ) : profile.image ? (
+                                <img src={profile.image} alt="Profile" className="w-full h-full object-cover" />
+                             ) : (
+                                <div className="text-4xl font-bold text-slate-400 font-serif">
+                                    {profile.full_name ? profile.full_name.charAt(0) : "U"}
+                                </div>
+                             )}
+                        </div>
+                        <label htmlFor="profile-upload" className="absolute bottom-0 right-0 bg-slate-900 text-white p-2 rounded-full cursor-pointer hover:bg-slate-700 transition shadow-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                            </svg>
+                        </label>
+                        <input id="profile-upload" type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                     </div>
-                    <div>
+
+                    <div className="text-center md:text-left">
                          <h1 className="text-3xl font-serif font-bold text-slate-900">Researcher Profile</h1>
                          <p className="text-slate-500 font-sans text-xs uppercase tracking-widest font-bold mt-1">Manage Personal Information</p>
                     </div>

@@ -8,7 +8,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ['id', 'email', 'full_name', 'bio', 'institution']
+        fields = ['id', 'email', 'full_name', 'bio', 'institution', 'image']
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)

@@ -35,6 +35,7 @@ class Profile(models.Model):
     full_name = models.CharField(max_length=255, blank=True)
     bio = models.TextField(blank=True, help_text="Research interests, background, etc.")
     institution = models.CharField(max_length=255, blank=True, help_text="University or Company")
+    image = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
 
     def __str__(self):
         return f"{self.user.email}'s Profile"
